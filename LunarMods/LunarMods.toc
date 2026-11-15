@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: LunarMods
+## Notes: All of Lundqwist's mods in one list: tick the ones you want to switch FavoriteItems, Quest XP Tracker and any other of them on or off. /lm
+## Author: Lundqwist
+## Version: 0.2.0
+## IconTexture: Interface\AddOns\LunarMods\Media\LMIcon
+## AddonCompartmentFunc: LunarMods_OnAddonCompartmentClick
+## SavedVariables: LunarModsDB
+## SavedVariablesPerCharacter: LunarModsCharDB
+
+Core.lua
+Window.lua
+Minimap.lua

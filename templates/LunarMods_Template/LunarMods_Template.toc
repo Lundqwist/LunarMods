@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: LunarMods: __TITLE__
+## Notes: __NOTES__
+## Author: Lundqwist
+## Version: 0.1.0
+## Dependencies: LunarMods
+## LoadOnDemand: 1
+## X-LunarMods-Part: 1
+## X-LunarMods-Title: __TITLE__
+
+__NAME__.lua
