@@ -2,6 +2,8 @@
 
 # LunarMods
 
+> **Retired (November 2026).** LunarMods is no longer developed and this repository is archived. The mods it used to link now work entirely on their own, each with its own minimap button and options page: [FavoriteItems](https://github.com/Lundqwist/FavoriteItems), [Quest XP Tracker](https://github.com/Lundqwist/WoW_Forever_QuestXPTracker) and [Lunar Journal](https://github.com/Lundqwist/LunarJournal).
+
 **Switch all of Lundqwist's mods on and off in one list, and run the ones you link from one minimap button.**
 
 Made for **World of Warcraft: Forever**. Type `/lm` or click the round **LM** button on the minimap.
