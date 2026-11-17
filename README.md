@@ -6,6 +6,8 @@
 
 Made for **World of Warcraft: Forever**. Type `/lm` or click the round **LM** button on the minimap.
 
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/lundqwist)
+
 ![The LunarMods window](docs/LunarMods/screenshots/window.png)
 
 ## The mods
