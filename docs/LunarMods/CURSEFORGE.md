@@ -2,55 +2,48 @@
 
 # LunarMods
 
-**All of Lundqwist's mods for World of Warcraft: Forever in one list. Tick the ones you want, untick the ones you don't.**
+**Switch all of Lundqwist's mods on and off in one list, and run the ones you link from one minimap button.**
 
-Type `/lm` or click the round **LM** button on the minimap. A window lists every mod with a tick box:
+Made for **World of Warcraft: Forever**. Type `/lm` or click the round **LM** button on the minimap.
 
-```
-LunarMods v0.2.0
-Tick the mods you want. Unticked mods are not loaded.
+![The LunarMods window](docs/LunarMods/screenshots/window.png)
 
-[x] FavoriteItems  Addon                          On
-    Mark items as favorites with a heart...    [Open]
-[x] Quest XP Tracker  Addon                       On
-    Track the XP of every quest in your log... [Open]
-                                           [Reload UI]
-```
+## The mods
 
-- **Tick or untick** a mod to switch it on or off.
-- **Open** opens a mod's own window (the same as typing `/fav` or `/qxp`).
-- FavoriteItems and Quest XP Tracker are normal addons that also work without LunarMods. Ticking or unticking one changes it in the game's own AddOn list, so it takes effect after **Reload UI**. The window tells you when a reload is needed.
+Each mod is its own addon, in its own repository with its own download. They all work without LunarMods.
+
+| Mod | What it does |
+|---|---|
+| **[FavoriteItems](https://github.com/Lundqwist/FavoriteItems)** | Mark items with a heart and get warned, with a buy-back button, when you sell one. `/fav` |
+| **[Quest XP Tracker](https://github.com/Lundqwist/WoW_Forever_QuestXPTracker)** | See the XP of every quest in your log, how close it gets you to your next level, and where each quest is done. `/qxp` |
+
+## Switch mods on and off
+
+The `/lm` window lists every one of the mods you have installed:
+
+- **Tick or untick** a mod to switch it on or off. The mods are separate addons, so this takes effect after **Reload UI**. The window tells you when a reload is needed.
+- **Open** opens the mod (the same as `/fav` or `/qxp`).
+- **Options** opens the mod's own options page, where you link it to LunarMods.
 - Your choices are the same for all your characters.
 
-## What's included
+## Link a mod: one minimap button for all of them
 
-| Mod | Kind | What it does |
-|---|---|---|
-| **FavoriteItems** | Addon | Mark items with a heart, get warned and buy them back when you sell one. `/fav` |
-| **Quest XP Tracker** | Addon | The XP of every quest in your log, how close it gets you to the next level, quests grouped by where they're done. `/qxp` |
+On its own, every mod has its own minimap button. Its options page (right-click its minimap button, click **Options** in `/lm`, or find it under the game's Options → AddOns) has a **Link to LunarMods** button:
 
-## One minimap button for all of them
+- **Linked**: the mod's own minimap button goes away. The **LM** button's right-click menu opens it, and its tooltip shows what the mod has to tell you (Quest XP Tracker's XP summary, the number of favorites).
+- **Not linked**: the mod keeps its own minimap button, and LunarMods only switches it on and off.
+- **Unlink from LunarMods**, on the same page, gives the mod its own button back. Without LunarMods, every mod simply works with its own button.
 
-The mods have no minimap buttons of their own: the round **LM** button is the way in to all of them.
+![A mod's options page with the Link to LunarMods button](docs/LunarMods/screenshots/options.png)
 
-```
-LunarMods
+![The LM button's tooltip with both mods linked](docs/LunarMods/screenshots/minimap.png)
 
-FavoriteItems                               on
+The **LM** button:
 
-Quest XP Tracker                            on
-Quest log                                37/40
-Level 23                  12,345 / 40,000
-Needed to level                     27,655
-Active quests (11/12)            31,200 XP
-Enough to level! 3,545 XP over.
-```
-
-- **Hover**: every mod and whether it's on, plus what a mod has to tell you (Quest XP Tracker's XP summary)
+- **Hover**: every mod and whether it's on, plus the summary of each linked mod
 - **Left-click**: open or close the list of mods
-- **Right-click**: a menu to open any mod (FavoriteItems, Quest XP Tracker) or the list
-- **Drag**: move it around the minimap (works with square minimaps such as SexyMap's too)
-- `/lm minimap`: hide or show it
+- **Right-click**: a menu to open any linked mod, or the list
+- **Drag**: move it around the minimap (square minimaps such as SexyMap's work too)
 
 LunarMods is also in the game's addon button by the minimap.
 
@@ -60,11 +53,12 @@ LunarMods is also in the game's addon button by the minimap.
 |---|---|
 | `/lm` or `/lunarmods` | Open the list |
 | `/lm list` | Show the mods and their state in chat |
-| `/lm on <mod>`, `/lm off <mod>` | Switch a mod on or off, for example `/lm off favoriteitems` or `/lm on questxptracker` |
-| `/lm minimap` | Show or hide the minimap button |
+| `/lm on <mod>`, `/lm off <mod>` | Switch a mod on or off, for example `/lm off favoriteitems` |
+| `/lm link <mod>`, `/lm unlink <mod>` | Link a mod to the LM button, or give it its own minimap button again |
+| `/lm minimap` | Show or hide the LM button |
 | `/lm <mod> ...` | A mod's own commands, for example `/lm questxptracker group` |
 | `/lm help` | The commands |
 
 ## Install
 
-Unpack the zip into `World of Warcraft\_forever_\Interface\AddOns`. It holds one folder per mod (`LunarMods`, `FavoriteItems`, `QuestXPTracker`). Delete the folders of mods you never want, or just untick them in `/lm`.
+Unpack the zip into `World of Warcraft\_forever_\Interface\AddOns`, next to the mods you want from the table above.

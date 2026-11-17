@@ -1,20 +1,66 @@
 # For developers
 
-## Folder layout
+## Repositories
+
+Every mod has its own repository; they sit next to each other:
 
 ```
-LunarMods\                    this folder
-├── LunarMods\                the core: the list, the minimap button, loading parts
-├── FavoriteItems\            an addon (works without LunarMods too)
-├── QuestXPTracker\           an addon (works without LunarMods too)
-├── docs\                     CurseForge descriptions, logos and screenshots; README.md is built from them
-├── templates\                the template for new parts
-└── tools\                    install, package, new part, icons
+E:\ProjectsCoding\
+├── LunarMods\               this repository
+│   ├── LunarMods\           the addon: the list, the LM minimap button, loading parts
+│   ├── shared\              LunarLink.lua and install-mod.ps1, copied into each mod
+│   ├── docs\                the CurseForge description, logo and screenshots; README.md is built from them
+│   ├── templates\           the template for new parts
+│   └── tools\               install, package, new part, icons, sync-link
+├── FavoriteItems\           github.com/Lundqwist/FavoriteItems
+└── QuestXPTracker\          github.com/Lundqwist/WoW_Forever_QuestXPTracker
+```
+
+## How a mod links to LunarMods
+
+A mod carries a copy of `shared\LunarLink.lua`, loaded before its own Lua file, with `LunarMods` in `## OptionalDeps` so LunarMods loads first when it is there:
+
+```
+## OptionalDeps: LunarMods
+## X-LunarMods: 1
+
+LunarLink.lua
+MyMod.lua
+```
+
+```lua
+local ADDON_NAME, ns = ...
+local link = ns.NewLunarLink({
+    name    = ADDON_NAME,
+    title   = "My Mod",
+    icon    = "Interface\\AddOns\\MyMod\\Media\\Icon",
+    db      = function() return MyModSettings end,  -- account-wide saved table
+    open    = function() MyMod_Toggle() end,      -- left-click, and Open in /lm
+    tooltip = function(tooltip) end,              -- summary lines (optional)
+    options = function(link)                      -- extra settings (optional)
+        link:AddHeader("My settings")
+        link:AddCheckbox("Do the thing", function() return MyModSettings.thing end,
+                                         function(on) MyModSettings.thing = on end)
+    end,
+    help    = { "/mm - open the window" },
+})
+-- at PLAYER_LOGIN:
+link:Init()
+```
+
+That gives the mod its own minimap button, an options page under the game's Options → AddOns, and the **Link to LunarMods** button on that page. `link:Init()` calls `LunarMods:RegisterMod(name, handle)` when LunarMods is loaded. A linked mod hides its own minimap button; LunarMods then puts it in the LM button's menu and tooltip. `link:OpenOptions()` opens the page (`/fav options`, `/qxp options`).
+
+Edit LunarLink.lua only in `shared\`, then copy it out and commit the copy in each mod's repository:
+
+```powershell
+.\tools\sync-link.ps1
 ```
 
 ## How LunarMods finds mods
 
-A **part** is an addon folder with three extra lines in its `.toc` file:
+An **addon** is listed when its `.toc` file has `## X-LunarMods: 1` or `## Author: Lundqwist`. `## X-LunarMods-Open: /qxp` gives it an Open button even before it registers. Addons are switched on or off through the game's own AddOn list (for all characters), so a change takes effect at the next reload.
+
+A **part** is a small addon folder named `LunarMods_Something` with three extra lines in its `.toc` file. Parts always count as linked:
 
 ```
 ## Dependencies: LunarMods
@@ -23,8 +69,6 @@ A **part** is an addon folder with three extra lines in its `.toc` file:
 ```
 
 `LoadOnDemand` tells the game not to load the part by itself. At login LunarMods loads the parts that are ticked in its list; ticking one later loads it right away. Unticking stops it; it leaves memory at the next `/reload`.
-
-An **addon** is listed when its `.toc` file has `## X-LunarMods: 1` or `## Author: Lundqwist`. `## X-LunarMods-Open: /qxp` adds an Open button that runs that command, and an entry in the LM button's right-click menu. `## X-LunarMods-Tooltip: QuestXPTracker_LunarModsTooltip` names a global function LunarMods calls with `GameTooltip` to add the mod's own lines to the LM button's tooltip. The mods have no minimap buttons of their own. Addons are switched on or off through the game's own AddOn list (for all characters), so a change takes effect at the next reload.
 
 ## Make a new part
 
@@ -68,15 +112,17 @@ An error in one part is reported in the normal way and does not stop the other p
 ## Tools
 
 ```powershell
-.\tools\install.ps1            # link every mod folder into the game (an older real copy is moved to AddOns-backup-<date>)
+.\tools\install.ps1            # link LunarMods (and any parts) into the game; an older real copy is moved to AddOns-backup-<date>
 .\tools\install.ps1 -Remove    # take the links away again
 .\tools\package.ps1            # build README.md and dist\LunarMods-<version>.zip
 .\tools\build-readme.ps1       # only rebuild README.md from docs\
+.\tools\sync-link.ps1          # copy shared\LunarLink.lua into FavoriteItems and QuestXPTracker
 .\tools\make-icon.ps1 -Size 64 -Tga LunarMods\Media\LMIcon.tga    # the LM icon
-.\tools\make-qxp-logo.ps1 -Size 64 -Tga QuestXPTracker\Media\QxpIcon.tga
 ```
 
-The game's folder is `World of Warcraft\_forever_\Interface\AddOns`; pass `-AddOns <path>` to `install.ps1` if yours is somewhere else.
+Each mod's repository has its own `install.ps1` (a copy of `shared\install-mod.ps1`) that links that mod into the game.
+
+The game's folder is `World of Warcraft\_forever_\Interface\AddOns`; pass `-AddOns <path>` to the install scripts if yours is somewhere else.
 
 ## License
 

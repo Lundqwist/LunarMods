@@ -1,8 +1,9 @@
 -- LunarMods: Minimap.lua
 -- The round "LM" button on the edge of the minimap.
--- The one minimap button for all of Lundqwist's mods.
--- Left-click: open the list of mods. Right-click: a menu to open any mod.
--- Hover: every mod's state, plus the lines a mod adds (Quest XP Tracker's XP summary).
+-- The minimap button for all of Lundqwist's mods that are linked to LunarMods
+-- (unlinked mods have their own buttons).
+-- Left-click: open the list of mods. Right-click: a menu to open any linked mod.
+-- Hover: every mod's state, plus the lines a linked mod adds (Quest XP Tracker's XP summary).
 -- Drag: move it around the minimap.
 -- /lm minimap hides or shows it. Its place is saved in LunarModsDB.minimap.
 
@@ -119,9 +120,8 @@ end
 local function ShowMenu()
     local entries = {}
     for _, info in ipairs(LunarMods:GetMods()) do
-        if info.open and C_AddOns.IsAddOnLoaded(info.name) then
-            local command = info.open
-            entries[#entries + 1] = { text = info.title, action = function() LunarMods:RunSlash(command) end }
+        if LunarMods:IsLinked(info.name) and LunarMods:CanOpen(info) then
+            entries[#entries + 1] = { text = info.title, action = function() LunarMods:OpenMod(info) end }
         end
     end
     entries[#entries + 1] = { text = "|cff7fb2ffAll mods...|r", action = function() LunarMods:ToggleWindow() end }
@@ -168,12 +168,15 @@ button:SetScript("OnEnter", function(self)
     if menu:IsShown() then return end
     GameTooltip:SetOwner(self, "ANCHOR_LEFT")
     GameTooltip:AddLine("LunarMods")
-    -- every mod: its name and state, plus its own lines when it gives some
+    -- every mod: its name and state, plus its own lines when it is linked
     for _, info in ipairs(LunarMods:GetMods()) do
         local status = LunarMods:GetStatus(info.name)
+        local linked = LunarMods:IsLinked(info.name)
+        local state = status == "on" and "|cff40ff40on|r" or "|cff999999" .. status .. "|r"
+        if status == "on" and not linked then state = "|cff999999own button|r  " .. state end
         GameTooltip:AddLine(" ")
-        GameTooltip:AddDoubleLine(info.title, status == "on" and "|cff40ff40on|r" or "|cff999999" .. status .. "|r", 1, 0.82, 0)
-        if status == "on" then LunarMods:AddModTooltip(info, GameTooltip) end
+        GameTooltip:AddDoubleLine(info.title, state, 1, 0.82, 0)
+        if status == "on" and linked then LunarMods:AddModTooltip(info, GameTooltip) end
     end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("Left-click: switch mods on or off", 0.6, 0.6, 0.6)

@@ -29,13 +29,9 @@ function Strip-Comments([string]$text) {
     [regex]::Replace($text, '(?s)<!--.*?-->\s*', '')
 }
 
+# The mods themselves live in their own repositories, each with its own README.
 $parts = @(
-    (Read-Doc 'docs\LunarMods\CURSEFORGE.md').TrimEnd(),
-    "---`n`n# The mods",
-    "Each description below is the one on the mod's CurseForge page.",
-    (Demote (Strip-Comments (Read-Doc 'docs\FavoriteItems\CURSEFORGE.md'))).TrimEnd(),
-    "---",
-    (Demote (Read-Doc 'docs\QuestXPTracker\CURSEFORGE.md')).TrimEnd(),
+    (Strip-Comments (Read-Doc 'docs\LunarMods\CURSEFORGE.md')).TrimEnd(),
     "---",
     (Read-Doc 'docs\DEVELOPING.md').TrimEnd()
 )

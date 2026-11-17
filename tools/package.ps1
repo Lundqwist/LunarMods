@@ -1,10 +1,11 @@
-# package.ps1 - build the zip with every mod, ready to unpack into the AddOns folder.
+# package.ps1 - build the LunarMods zip, ready to unpack into the AddOns folder.
 #
 #     .\tools\package.ps1
 #
 # Writes dist\LunarMods-<version>.zip (the version comes from LunarMods\LunarMods.toc).
-# The zip holds one folder per addon (LunarMods, FavoriteItems, QuestXPTracker, and
-# any LunarMods_* parts); README.md and LICENSE go inside LunarMods\.
+# The zip holds LunarMods and any LunarMods_* parts; README.md and LICENSE go
+# inside LunarMods\. FavoriteItems and Quest XP Tracker are packaged from their
+# own repositories.
 # Unpack it into World of Warcraft\_forever_\Interface\AddOns.
 
 $ErrorActionPreference = 'Stop'

@@ -16,17 +16,20 @@
 --    LunarMods loads only the parts you have switched on. A part that is
 --    switched off is never loaded, and ticking it loads it right away.
 --
--- 2. Addons: normal addons that also work without LunarMods (FavoriteItems,
+-- 2. Addons: separate addons that also work without LunarMods (FavoriteItems,
 --    QuestXPTracker). They are found by "## X-LunarMods: 1" or
 --    "## Author: Lundqwist" in their .toc file. Switching one on or off ticks
 --    it in the game's own AddOn list, so it takes effect at the next /reload.
 --    "## X-LunarMods-Open: /qxp" gives the row an Open button that runs that
---    slash command, and puts the mod in the LM button's right-click menu.
---    "## X-LunarMods-Tooltip: SomeGlobalFunction" lets the mod add lines to
---    the LM button's tooltip: SomeGlobalFunction(GameTooltip) is called.
+--    slash command.
 --
--- LunarMods' "LM" minimap button is the one way in to all of them; the mods
--- have no minimap buttons of their own.
+-- Linking: an addon that carries LunarLink.lua (shared\LunarLink.lua here)
+-- has its own minimap button and options page, and calls
+-- LunarMods:RegisterMod(name, handle) at login. Its options page has a
+-- "Link to LunarMods" button. A linked mod hides its own minimap button: it
+-- is in the LM button's right-click menu and tooltip instead. An unlinked mod
+-- keeps its own button and only its on/off tick is in the /lm list. Mods
+-- without LunarLink.lua (parts) always count as linked.
 --
 -- In its Lua file a part registers itself and gets a small toolbox back:
 --
@@ -307,10 +310,70 @@ function LunarMods:GetStatus(name)
     return "off"
 end
 
--- Lets a mod add its own lines to a tooltip (X-LunarMods-Tooltip in its .toc)
+-- ---------------------------------------------------------------- linked mods
+
+local handles = {}   -- [folder name] = what the mod's LunarLink.lua registered
+
+-- Called by a mod's LunarLink.lua at login. handle = { IsLinked(), SetLinked(on),
+-- OpenOptions(), Open() (optional), Tooltip(tooltip) (optional) }
+function LunarMods:RegisterMod(name, handle)
+    handles[name] = handle
+    self:RefreshWindow()
+end
+
+function LunarMods:GetHandle(name)
+    return handles[name]
+end
+
+-- Whether LunarMods runs the mod: the LM button's menu and tooltip have it,
+-- and its own minimap button is hidden
+function LunarMods:IsLinked(name)
+    local handle = handles[name]
+    if handle then
+        local ok, linked = pcall(handle.IsLinked)
+        return ok and linked and true or false
+    end
+    return true
+end
+
+function LunarMods:SetLinked(name, linked)
+    local handle = handles[name]
+    if handle and handle.SetLinked then SafeCall(handle.SetLinked, linked) end
+end
+
+function LunarMods:HasOptions(name)
+    local handle = handles[name]
+    return handle ~= nil and handle.OpenOptions ~= nil
+end
+
+function LunarMods:OpenOptions(name)
+    local handle = handles[name]
+    if handle and handle.OpenOptions then SafeCall(handle.OpenOptions) end
+end
+
+-- Whether the mod has a window or action that "Open" can start right now
+function LunarMods:CanOpen(info)
+    if not C_AddOns.IsAddOnLoaded(info.name) then return false end
+    local handle = handles[info.name]
+    return (handle and handle.Open ~= nil) or info.open ~= nil
+end
+
+function LunarMods:OpenMod(info)
+    local handle = handles[info.name]
+    if handle and handle.Open then
+        SafeCall(handle.Open)
+    elseif info.open then
+        self:RunSlash(info.open)
+    end
+end
+
+-- Lets a mod add its own lines to a tooltip (its LunarLink tooltip, or the
+-- global function named by X-LunarMods-Tooltip in its .toc)
 function LunarMods:AddModTooltip(info, tooltip)
-    local func = info.tooltip and _G[info.tooltip]
-    if type(func) == "function" and C_AddOns.IsAddOnLoaded(info.name) then
+    if not C_AddOns.IsAddOnLoaded(info.name) then return false end
+    local handle = handles[info.name]
+    local func = (handle and handle.Tooltip) or (info.tooltip and _G[info.tooltip])
+    if type(func) == "function" then
         return SafeCall(func, tooltip)
     end
     return false
@@ -401,7 +464,11 @@ local function PrintList()
     LunarMods:Print("mods:")
     for _, info in ipairs(installed) do
         local status, why = LunarMods:GetStatus(info.name)
-        print("   " .. info.short .. "  " .. STATUS_TEXT[status] .. (why and (": " .. why) or ""))
+        local linked = ""
+        if LunarMods:GetHandle(info.name) then
+            linked = LunarMods:IsLinked(info.name) and ", linked" or ", own minimap button"
+        end
+        print("   " .. info.short .. "  " .. STATUS_TEXT[status] .. linked .. (why and (": " .. why) or ""))
     end
 end
 
@@ -428,11 +495,19 @@ SlashCmdList["LUNARMODS"] = function(message)
             LunarMods:Print(info.title .. ": " .. STATUS_TEXT[status] .. ".")
         end
         LunarMods:RefreshWindow()
+    elseif command == "link" or command == "unlink" then
+        local info = FindInstalled(rest)
+        if not info or not LunarMods:GetHandle(info.name) then
+            LunarMods:Print("no loaded mod called '" .. rest .. "' that can be linked. Try /lm list")
+            return
+        end
+        LunarMods:SetLinked(info.name, command == "link")
     elseif command == "help" then
         LunarMods:Print("version " .. LunarMods.version)
         print("   /lm  - open the list of mods")
         print("   /lm list  - show the mods in chat")
         print("   /lm on <mod>, /lm off <mod>  - switch a mod on or off")
+        print("   /lm link <mod>, /lm unlink <mod>  - run a mod from the LM button, or give it its own minimap button")
         print("   /lm minimap  - show or hide the minimap button")
         print("   /lm <mod> ...  - a mod's own commands")
     else
@@ -443,6 +518,8 @@ SlashCmdList["LUNARMODS"] = function(message)
             SafeCall(part.OnSlash, part, rest)
         elseif info and info.open and C_AddOns.IsAddOnLoaded(info.name) then
             LunarMods:RunSlash(info.open .. " " .. rest)
+        elseif info and rest == "" and LunarMods:CanOpen(info) then
+            LunarMods:OpenMod(info)
         elseif info then
             LunarMods:Print(info.title .. " is switched off or has no commands.")
         else

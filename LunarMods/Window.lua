@@ -54,7 +54,20 @@ local function CreateRow(parent, index)
     row.open:SetHighlightFontObject("GameFontHighlightSmall")
     row.open:SetDisabledFontObject("GameFontDisableSmall")
     row.open:SetScript("OnClick", function()
-        if row.openCommand then LunarMods:RunSlash(row.openCommand) end
+        if row.info then LunarMods:OpenMod(row.info) end
+    end)
+
+    -- the mod's own options page (mods with LunarLink.lua); its Link button is there
+    row.options = CreateFrame("Button", nil, row, "UIPanelButtonTemplate")
+    row.options:SetSize(64, 18)
+    row.options:SetPoint("RIGHT", row.open, "LEFT", -4, 0)
+    row.options:SetText("Options")
+    row.options:SetNormalFontObject("GameFontNormalSmall")
+    row.options:SetHighlightFontObject("GameFontHighlightSmall")
+    row.options:SetDisabledFontObject("GameFontDisableSmall")
+    row.options:SetScript("OnClick", function()
+        if window then window:Hide() end
+        LunarMods:OpenOptions(row.name)
     end)
 
     row.title = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -65,7 +78,7 @@ local function CreateRow(parent, index)
 
     row.notes = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     row.notes:SetPoint("TOPLEFT", row.title, "BOTTOMLEFT", 0, -3)
-    row.notes:SetPoint("RIGHT", row.open, "LEFT", -8, 0)
+    row.notes:SetPoint("RIGHT", row.options, "LEFT", -8, 0)
     row.notes:SetJustifyH("LEFT")
     row.notes:SetWordWrap(false)
 
@@ -82,6 +95,13 @@ local function CreateRow(parent, index)
         end
         if self.kind == "addon" then
             GameTooltip:AddLine("A separate addon: switching it on or off takes effect after a reload.", 0.6, 0.6, 0.6, true)
+            if LunarMods:GetHandle(self.name) then
+                if LunarMods:IsLinked(self.name) then
+                    GameTooltip:AddLine("Linked: the LM button opens it. Unlink it under Options to give it its own minimap button.", 0.6, 0.6, 0.6, true)
+                else
+                    GameTooltip:AddLine("Not linked: it has its own minimap button. Link it under Options to run it from the LM button.", 0.6, 0.6, 0.6, true)
+                end
+            end
         else
             GameTooltip:AddLine("A LunarMods part: ticking it starts it right away.", 0.6, 0.6, 0.6, true)
         end
@@ -136,7 +156,7 @@ local function CreateWindow()
     hint:SetPoint("TOPLEFT", 16, -44)
     hint:SetPoint("RIGHT", -16, 0)
     hint:SetJustifyH("LEFT")
-    hint:SetText("Tick the mods you want. Unticked mods are not loaded.")
+    hint:SetText("Tick the mods you want. Options links a mod to the LM button.")
 
     -- The list scrolls when there are more mods than fit
     local scroll = CreateFrame("ScrollFrame", "LunarModsWindowScroll", window, "UIPanelScrollFrameTemplate")
@@ -180,17 +200,23 @@ function LunarMods:RefreshWindow()
         local status, why = self:GetStatus(info.name)
         local label = STATUS[status]
 
+        row.info = info
         row.name, row.short, row.kind = info.name, info.short, info.kind
         row.titleText, row.notesText, row.why = info.title, info.notes, why
-        row.title:SetText(info.title .. "  " .. KIND[info.kind])
+        local link = ""
+        if self:GetHandle(info.name) then
+            link = self:IsLinked(info.name) and "  |cff40ff40linked|r" or "  |cff999999own button|r"
+        end
+        row.title:SetText(info.title .. "  " .. KIND[info.kind] .. link)
         row.notes:SetText(info.notes)
         row.status:SetText(label[1])
         row.status:SetTextColor(label[2], label[3], label[4])
         row.check:SetChecked(self:IsWanted(info.name))
 
-        row.openCommand = info.open
-        row.open:SetShown(info.open ~= nil)
-        row.open:SetEnabled(info.open ~= nil and C_AddOns.IsAddOnLoaded(info.name))
+        local canOpen = self:CanOpen(info)
+        row.open:SetShown(canOpen or info.open ~= nil)
+        row.open:SetEnabled(canOpen)
+        row.options:SetShown(self:HasOptions(info.name))
         row:Show()
 
         if status == "stopped" or status == "pending" then needsReload = true end
