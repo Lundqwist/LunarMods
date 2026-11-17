@@ -9,7 +9,7 @@
 # then commit the copy in each mod's repository.
 
 param(
-    [string[]]$Mods = @('FavoriteItems', 'QuestXPTracker')
+    [string[]]$Mods = @('FavoriteItems', 'QuestXPTracker', 'LunarJournal')
 )
 
 $ErrorActionPreference = 'Stop'
